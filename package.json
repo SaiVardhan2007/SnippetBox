@@ -1,0 +1,11 @@
+{
+  "name": "snippetbox-root",
+  "version": "1.0.0",
+  "description": "SnippetBox MERN application root workspace",
+  "scripts": {
+    "install-all": "npm install --prefix Backend && npm install --prefix Frontend",
+    "dev-backend": "npm run dev --prefix Backend",
+    "dev-frontend": "npm run dev --prefix Frontend",
+    "dev": "npm run dev-backend & npm run dev-frontend"
+  }
+}
