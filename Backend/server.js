@@ -5,10 +5,24 @@ const connectDB = require('./config/dbConnection');
 const cors = require('cors');
 const PORT = process.env.PORT || process.env.BACKEND_PORT || 4000;
 
+const allowedOrigins = [
+    process.env.FRONTEND_URL ? process.env.FRONTEND_URL.replace(/\/$/, '') : '',
+    'http://localhost:5173'
+];
+
 const corsOptions = {
-    origin: process.env.NODE_ENV === 'production'
-        ? (process.env.FRONTEND_URL ? process.env.FRONTEND_URL.replace(/\/$/, '') : '')
-        : 'http://localhost:5173',
+    origin: (origin, callback) => {
+        if (!origin) return callback(null, true);
+        const sanitizedOrigin = origin.replace(/\/$/, '');
+        if (
+            allowedOrigins.includes(sanitizedOrigin) || 
+            sanitizedOrigin.endsWith('.vercel.app')
+        ) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
