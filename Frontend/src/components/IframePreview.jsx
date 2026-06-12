@@ -1,6 +1,20 @@
 import React from 'react';
 
-export default function IframePreview({ htmlCode = '', cssCode = '', jsCode = '', tailwindCode = '', height = '120px', theme = 'dark', snippetId = '', scale = 1 }) {
+// Memoize IframePreview so that it only re-renders and reloads the iframe
+// if its core snippet content or styling variables actually change.
+// This prevents flickering and interruptions to infinite loaders.
+const IframePreview = React.memo(({ 
+  htmlCode = '', 
+  cssCode = '', 
+  jsCode = '', 
+  tailwindCode = '', 
+  height = '120px', 
+  theme = 'dark', 
+  snippetId = '', 
+  scale = 1 
+}) => {
+  
+  // HTML document inside the sandboxed iframe
   const doc = `
     <!DOCTYPE html>
     <html class="h-full">
@@ -18,7 +32,7 @@ export default function IframePreview({ htmlCode = '', cssCode = '', jsCode = ''
             align-items: center;
             min-height: 100vh;
             background-color: transparent;
-            color: ${theme === 'light' ? '#0f172a' : '#f3f4f6'};
+            color: #f3f4f6;
             font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
             box-sizing: border-box;
             overflow: hidden; /* Prevent scrolls inside standard UI components */
@@ -42,7 +56,7 @@ export default function IframePreview({ htmlCode = '', cssCode = '', jsCode = ''
           </div>
         </div>
         <script>
-          // Wrap custom JS run scripts inside try/catch so it doesn't crash execution context
+          // Run custom JS securely without breaking the iframe execution context
           const runCustomJS = () => {
             try {
               ${jsCode}
@@ -51,40 +65,33 @@ export default function IframePreview({ htmlCode = '', cssCode = '', jsCode = ''
             }
           };
 
-          window.addEventListener('DOMContentLoaded', () => {
+          // Initialize interactions immediately or when DOM is ready
+          const init = () => {
             runCustomJS();
 
-            // Intercept clicks on the preview and notify parent component
+            // Notify parent window of click events so details modal can be opened
             if ('${snippetId}') {
               document.addEventListener('click', () => {
                 window.parent.postMessage({ type: 'IFRAME_CLICK', snippetId: '${snippetId}' }, '*');
               });
             }
+          };
 
-            // Periodically refresh the component content to re-trigger mount transitions and loop scripts
-            const container = document.querySelector('body > div');
-            if (container && container.innerHTML) {
-              const originalHTML = container.innerHTML;
-              setInterval(() => {
-                container.innerHTML = '';
-                setTimeout(() => {
-                  container.innerHTML = originalHTML;
-                  runCustomJS();
-                }, 80);
-              }, 4000);
-            }
-          });
+          if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+          } else {
+            init();
+          }
         </script>
       </body>
     </html>
   `;
 
+  // Determine outer container styling based on theme
   let bgClass = 'bg-[#08080f] border-white/5';
   let inlineStyles = {};
 
-  if (theme === 'light') {
-    bgClass = 'bg-white border-black/10';
-  } else if (theme === 'grid') {
+  if (theme === 'grid') {
     bgClass = 'bg-[#06060a] border-white/5';
     inlineStyles = {
       backgroundImage: 'linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px)',
@@ -104,4 +111,6 @@ export default function IframePreview({ htmlCode = '', cssCode = '', jsCode = ''
       />
     </div>
   );
-}
+});
+
+export default IframePreview;
