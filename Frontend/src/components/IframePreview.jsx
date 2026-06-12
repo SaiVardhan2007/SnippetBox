@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default function IframePreview({ htmlCode = '', cssCode = '', jsCode = '', tailwindCode = '', height = '120px', theme = 'dark', snippetId = '' }) {
+export default function IframePreview({ htmlCode = '', cssCode = '', jsCode = '', tailwindCode = '', height = '120px', theme = 'dark', snippetId = '', scale = 1 }) {
   const doc = `
     <!DOCTYPE html>
     <html class="h-full">
@@ -23,13 +23,23 @@ export default function IframePreview({ htmlCode = '', cssCode = '', jsCode = ''
             box-sizing: border-box;
             overflow: hidden; /* Prevent scrolls inside standard UI components */
           }
+          .scale-wrapper {
+            transform: scale(${scale});
+            transform-origin: center center;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+          }
           /* Inject custom style sheet code */
           ${cssCode}
         </style>
       </head>
       <body class="h-full antialiased">
-        <div class="w-full flex items-center justify-center">
-          ${htmlCode || tailwindCode || '<div class="text-gray-500 text-sm">No preview content available</div>'}
+        <div class="scale-wrapper">
+          <div class="w-full flex items-center justify-center">
+            ${htmlCode || tailwindCode || '<div class="text-gray-500 text-sm">No preview content available</div>'}
+          </div>
         </div>
         <script>
           // Wrap custom JS run scripts inside try/catch so it doesn't crash execution context

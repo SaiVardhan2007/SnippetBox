@@ -269,7 +269,7 @@ export default function Home() {
                   <div
                     key={snip._id}
                     onClick={() => openSnippetModal(snip)}
-                    className="glass-card hover:bg-white/[0.02] border border-white/5 hover:border-white/10 rounded-2xl p-5 transition-all duration-300 shadow-lg cursor-pointer flex flex-col justify-between h-52 group relative overflow-hidden"
+                    className="glass-card hover:bg-white/[0.02] border border-white/5 hover:border-white/10 rounded-2xl p-5 transition-all duration-300 shadow-lg cursor-pointer flex flex-col justify-between h-60 group relative overflow-hidden"
                   >
                     <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-indigo-500/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
 
@@ -302,9 +302,10 @@ export default function Home() {
                           cssCode={snip.cssCode}
                           jsCode={snip.jsCode}
                           tailwindCode={snip.tailwindCode}
-                          height="90px"
+                          height="120px"
                           snippetId={snip._id}
                           theme={cardThemes[snip._id] || 'dark'}
+                          scale={0.75}
                         />
                       </div>
                     </div>
@@ -414,7 +415,7 @@ export default function Home() {
                   <div
                     key={snip._id}
                     onClick={() => openSnippetModal(snip)}
-                    className="glass-card hover:bg-white/[0.02] border border-white/5 hover:border-white/10 rounded-2xl p-5 transition-all duration-300 shadow-lg cursor-pointer flex flex-col justify-between h-52 group relative overflow-hidden"
+                    className="glass-card hover:bg-white/[0.02] border border-white/5 hover:border-white/10 rounded-2xl p-5 transition-all duration-300 shadow-lg cursor-pointer flex flex-col justify-between h-60 group relative overflow-hidden"
                   >
                     <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-indigo-500/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
 
@@ -451,9 +452,10 @@ export default function Home() {
                           cssCode={snip.cssCode}
                           jsCode={snip.jsCode}
                           tailwindCode={snip.tailwindCode}
-                          height="90px"
+                          height="120px"
                           snippetId={snip._id}
                           theme={cardThemes[snip._id] || 'dark'}
+                          scale={0.75}
                         />
                       </div>
                     </div>
