@@ -10,6 +10,36 @@ const DynamicIcon = ({ name, className, size = 18 }) => {
   return <IconComponent className={className} size={size} />;
 };
 
+const getSnippetLayout = (categoryName) => {
+  const name = categoryName?.toLowerCase() || '';
+  if (name.includes('button')) {
+    return {
+      cardClass: 'h-52',
+      previewHeight: '90px',
+      scale: 1.0
+    };
+  }
+  if (name.includes('card')) {
+    return {
+      cardClass: 'h-[260px]',
+      previewHeight: '135px',
+      scale: 0.65
+    };
+  }
+  if (name.includes('loader')) {
+    return {
+      cardClass: 'h-52',
+      previewHeight: '90px',
+      scale: 1.0
+    };
+  }
+  return {
+    cardClass: 'h-52',
+    previewHeight: '95px',
+    scale: 0.9
+  };
+};
+
 export default function CategoryDetail() {
   const { id } = useParams();
   const [category, setCategory] = useState(null);
@@ -220,56 +250,58 @@ export default function CategoryDetail() {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredSnippets.map((snip) => (
-            <div
-              key={snip._id}
-              onClick={() => openSnippetModal(snip)}
-              className="glass-card hover:bg-white/[0.02] border border-white/5 hover:border-white/10 rounded-2xl p-5 transition-all duration-300 shadow-lg cursor-pointer flex flex-col justify-between h-60 group relative overflow-hidden"
-            >
-              {/* Highlight gradient indicator */}
-              <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-indigo-500/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+          {filteredSnippets.map((snip) => {
+            const layout = getSnippetLayout(category?.name);
+            return (
+              <div
+                key={snip._id}
+                onClick={() => openSnippetModal(snip)}
+                className={`glass-card hover:bg-white/[0.02] border border-white/5 hover:border-white/10 rounded-2xl p-5 transition-all duration-300 shadow-lg cursor-pointer flex flex-col justify-between group relative overflow-hidden ${layout.cardClass}`}
+              >
+                {/* Highlight gradient indicator */}
+                <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-indigo-500/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
 
-              <div>
-                <div className="flex items-center justify-between gap-2">
-                  <h3 className="font-bold text-xs sm:text-sm text-[var(--title-color)] group-hover:text-indigo-300 transition-colors truncate">{snip.title}</h3>
-                  <div className="flex items-center gap-1.5 shrink-0">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleBookmark(snip._id);
-                      }}
-                      className={`p-1 rounded-lg border transition-all cursor-pointer hover:bg-white/5 ${
-                        bookmarks.includes(snip._id)
-                          ? 'text-pink-500 border-pink-500/20 bg-pink-500/10'
-                          : 'text-gray-500 border-transparent hover:text-gray-300'
-                      }`}
-                      title={bookmarks.includes(snip._id) ? "Remove Bookmark" : "Bookmark Snippet"}
-                    >
-                      <Icons.Heart size={12} fill={bookmarks.includes(snip._id) ? "currentColor" : "none"} />
-                    </button>
-                    <Eye size={12} className="text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div>
+                  <div className="flex items-center justify-between gap-2">
+                    <h3 className="font-bold text-xs sm:text-sm text-[var(--title-color)] group-hover:text-indigo-300 transition-colors truncate">{snip.title}</h3>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleBookmark(snip._id);
+                        }}
+                        className={`p-1 rounded-lg border transition-all cursor-pointer hover:bg-white/5 ${
+                          bookmarks.includes(snip._id)
+                            ? 'text-pink-500 border-pink-500/20 bg-pink-500/10'
+                            : 'text-gray-500 border-transparent hover:text-gray-300'
+                        }`}
+                        title={bookmarks.includes(snip._id) ? "Remove Bookmark" : "Bookmark Snippet"}
+                      >
+                        <Icons.Heart size={12} fill={bookmarks.includes(snip._id) ? "currentColor" : "none"} />
+                      </button>
+                      <Eye size={12} className="text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </div>
+                  </div>
+                  {snip.description && (
+                    <p className="text-[10px] text-gray-400 mt-1 line-clamp-1 leading-relaxed">{snip.description}</p>
+                  )}
+                </div>
+
+                {/* Natural Component Size Sandbox Preview (Centering component cleanly at standard size) */}
+                <div className="flex-1 flex items-center justify-center overflow-hidden mt-2 select-none">
+                  <div className="scale-90 origin-center transition-transform group-hover:scale-95 duration-300 w-full">
+                    <IframePreview
+                      htmlCode={snip.htmlCode}
+                      cssCode={snip.cssCode}
+                      jsCode={snip.jsCode}
+                      tailwindCode={snip.tailwindCode}
+                      height={layout.previewHeight}
+                      snippetId={snip._id}
+                      theme={cardThemes[snip._id] || 'dark'}
+                      scale={layout.scale}
+                    />
                   </div>
                 </div>
-                {snip.description && (
-                  <p className="text-[10px] text-gray-400 mt-1 line-clamp-1 leading-relaxed">{snip.description}</p>
-                )}
-              </div>
-
-              {/* Natural Component Size Sandbox Preview (Centering component cleanly at standard size) */}
-              <div className="flex-1 flex items-center justify-center overflow-hidden mt-2 select-none">
-                <div className="scale-90 origin-center transition-transform group-hover:scale-95 duration-300">
-                  <IframePreview
-                    htmlCode={snip.htmlCode}
-                    cssCode={snip.cssCode}
-                    jsCode={snip.jsCode}
-                    tailwindCode={snip.tailwindCode}
-                    height="120px"
-                    snippetId={snip._id}
-                    theme={cardThemes[snip._id] || 'dark'}
-                    scale={0.75}
-                  />
-                </div>
-              </div>
 
               <div className="flex items-center justify-between mt-2 select-none relative z-10">
                 {/* Background theme toggle for preview */}
@@ -299,7 +331,8 @@ export default function CategoryDetail() {
                 </div>
               </div>
             </div>
-          ))}
+          );
+        })}
         </div>
       )}
 

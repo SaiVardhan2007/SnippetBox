@@ -12,7 +12,7 @@ export default function IframePreview({ htmlCode = '', cssCode = '', jsCode = ''
         <style>
           body {
             margin: 0;
-            padding: 0.75rem;
+            padding: 4px;
             display: flex;
             justify-content: center;
             align-items: center;
