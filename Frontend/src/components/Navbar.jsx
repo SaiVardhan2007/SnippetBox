@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Terminal, Menu, X, LogOut, LayoutDashboard, LogIn, ChevronRight } from 'lucide-react';
+import { Terminal, Menu, X, LogOut, LayoutDashboard, LogIn, ChevronRight, Sun, Moon } from 'lucide-react';
 import { API_URL } from '../config';
 
 export default function Navbar() {
@@ -8,6 +8,26 @@ export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('token'));
   const [isAdmin, setIsAdmin] = useState(localStorage.getItem('isAdmin') === 'true');
+  const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'dark');
+
+  useEffect(() => {
+    const root = window.document.documentElement;
+    if (theme === 'light') {
+      root.classList.add('light');
+    } else {
+      root.classList.remove('light');
+    }
+    localStorage.setItem('theme', theme);
+    window.dispatchEvent(new Event('theme-change'));
+  }, [theme]);
+
+  useEffect(() => {
+    const handleThemeChange = () => {
+      setTheme(localStorage.getItem('theme') || 'dark');
+    };
+    window.addEventListener('theme-change', handleThemeChange);
+    return () => window.removeEventListener('theme-change', handleThemeChange);
+  }, []);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -92,6 +112,14 @@ export default function Navbar() {
 
         {/* Desktop Actions */}
         <div className="hidden md:flex items-center gap-3">
+          <button
+            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+            className="p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-400 hover:text-white transition-all cursor-pointer flex items-center justify-center shrink-0"
+            title={theme === 'dark' ? "Switch to Light Mode" : "Switch to Dark Mode"}
+          >
+            {theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}
+          </button>
+
           {isLoggedIn ? (
             <>
               {isAdmin && (
@@ -153,6 +181,14 @@ export default function Navbar() {
             </Link>
           ))}
           <div className="border-t border-white/5 pt-4 flex flex-col gap-2">
+            <button 
+              onClick={() => { setTheme(theme === 'dark' ? 'light' : 'dark'); }} 
+              className="flex items-center justify-center gap-2 bg-white/5 border border-white/10 py-2.5 rounded-xl text-sm font-medium text-gray-400 hover:text-white cursor-pointer"
+            >
+              {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+              <span>{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
+            </button>
+
             {isLoggedIn ? (
               <>
                 {isAdmin && (

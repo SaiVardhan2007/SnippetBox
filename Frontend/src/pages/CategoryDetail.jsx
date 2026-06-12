@@ -40,6 +40,50 @@ export default function CategoryDetail() {
     return () => window.removeEventListener('storage', handleStorage);
   }, []);
 
+  const getLanguageTabs = (snip) => {
+    if (!snip) return [];
+    const tabs = [];
+    if (snip.tailwindCode) tabs.push({ key: 'tailwind', label: 'Tailwind CSS' });
+    if (snip.htmlCode || snip.cssCode) tabs.push({ key: 'html', label: 'HTML & CSS' });
+    if (snip.reactCode) tabs.push({ key: 'react', label: 'React JSX' });
+    if (snip.jsCode) tabs.push({ key: 'js', label: 'JavaScript' });
+    return tabs;
+  };
+
+  const getCodeContent = (snip, activeTab) => {
+    if (!snip) return '';
+    if (activeTab === 'html') {
+      return snip.cssCode 
+        ? `${snip.htmlCode}\n\n/* Custom Styles */\n${snip.cssCode}`
+        : snip.htmlCode;
+    }
+    if (activeTab === 'tailwind') return snip.tailwindCode;
+    if (activeTab === 'react') return snip.reactCode;
+    if (activeTab === 'js') return snip.jsCode;
+    return '';
+  };
+
+  const openSnippetModal = (snip) => {
+    setSelectedSnippet(snip);
+    const tabs = getLanguageTabs(snip);
+    if (tabs.length > 0) {
+      setModalActiveTab(tabs[0].key);
+    }
+  };
+
+  useEffect(() => {
+    const handleMessage = (e) => {
+      if (e.data && e.data.type === 'IFRAME_CLICK') {
+        const found = snippets.find(s => s._id === e.data.snippetId);
+        if (found) {
+          openSnippetModal(found);
+        }
+      }
+    };
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [snippets]);
+
   const toggleBookmark = (snippetId) => {
     let nextBookmarks = [...bookmarks];
     if (nextBookmarks.includes(snippetId)) {
@@ -100,37 +144,6 @@ export default function CategoryDetail() {
       .catch(err => console.error("Failed to copy:", err));
   };
 
-  const getLanguageTabs = (snip) => {
-    if (!snip) return [];
-    const tabs = [];
-    if (snip.tailwindCode) tabs.push({ key: 'tailwind', label: 'Tailwind CSS' });
-    if (snip.htmlCode || snip.cssCode) tabs.push({ key: 'html', label: 'HTML & CSS' });
-    if (snip.reactCode) tabs.push({ key: 'react', label: 'React JSX' });
-    if (snip.jsCode) tabs.push({ key: 'js', label: 'JavaScript' });
-    return tabs;
-  };
-
-  const getCodeContent = (snip, activeTab) => {
-    if (!snip) return '';
-    if (activeTab === 'html') {
-      return snip.cssCode 
-        ? `${snip.htmlCode}\n\n/* Custom Styles */\n${snip.cssCode}`
-        : snip.htmlCode;
-    }
-    if (activeTab === 'tailwind') return snip.tailwindCode;
-    if (activeTab === 'react') return snip.reactCode;
-    if (activeTab === 'js') return snip.jsCode;
-    return '';
-  };
-
-  const openSnippetModal = (snip) => {
-    setSelectedSnippet(snip);
-    const tabs = getLanguageTabs(snip);
-    if (tabs.length > 0) {
-      setModalActiveTab(tabs[0].key);
-    }
-  };
-
   const filteredSnippets = snippets.filter(snip =>
     snip.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
     (snip.description && snip.description.toLowerCase().includes(searchQuery.toLowerCase()))
@@ -152,7 +165,7 @@ export default function CategoryDetail() {
                 <DynamicIcon name={category.icon} size={18} />
               </div>
             )}
-            <h1 className="text-xl sm:text-2xl font-black text-white">{category ? category.name : 'Loading...'}</h1>
+            <h1 className="text-xl sm:text-2xl font-black text-[var(--title-color)]">{category ? category.name : 'Loading...'}</h1>
           </div>
         </div>
 
@@ -217,7 +230,7 @@ export default function CategoryDetail() {
 
               <div>
                 <div className="flex items-center justify-between gap-2">
-                  <h3 className="font-bold text-xs sm:text-sm text-white group-hover:text-indigo-300 transition-colors truncate">{snip.title}</h3>
+                  <h3 className="font-bold text-xs sm:text-sm text-[var(--title-color)] group-hover:text-indigo-300 transition-colors truncate">{snip.title}</h3>
                   <div className="flex items-center gap-1.5 shrink-0">
                     <button
                       onClick={(e) => {
@@ -242,7 +255,7 @@ export default function CategoryDetail() {
               </div>
 
               {/* Natural Component Size Sandbox Preview (Centering component cleanly at standard size) */}
-              <div className="flex-1 flex items-center justify-center overflow-hidden pointer-events-none mt-2 select-none">
+              <div className="flex-1 flex items-center justify-center overflow-hidden mt-2 select-none">
                 <div className="scale-90 origin-center transition-transform group-hover:scale-95 duration-300">
                   <IframePreview
                     htmlCode={snip.htmlCode}
@@ -250,6 +263,7 @@ export default function CategoryDetail() {
                     jsCode={snip.jsCode}
                     tailwindCode={snip.tailwindCode}
                     height="90px"
+                    snippetId={snip._id}
                   />
                 </div>
               </div>
@@ -330,7 +344,7 @@ export default function CategoryDetail() {
                     {category ? category.name : 'Component'}
                   </span>
                 </div>
-                <h2 className="text-base sm:text-lg font-black text-white mt-1.5">{selectedSnippet.title}</h2>
+                <h2 className="text-base sm:text-lg font-black text-[var(--title-color)] mt-1.5">{selectedSnippet.title}</h2>
                 {selectedSnippet.description && (
                   <p className="text-[11px] text-gray-400 mt-1 leading-relaxed">{selectedSnippet.description}</p>
                 )}

@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default function IframePreview({ htmlCode = '', cssCode = '', jsCode = '', tailwindCode = '', height = '120px', theme = 'dark' }) {
+export default function IframePreview({ htmlCode = '', cssCode = '', jsCode = '', tailwindCode = '', height = '120px', theme = 'dark', snippetId = '' }) {
   const doc = `
     <!DOCTYPE html>
     <html class="h-full">
@@ -43,6 +43,13 @@ export default function IframePreview({ htmlCode = '', cssCode = '', jsCode = ''
 
           window.addEventListener('DOMContentLoaded', () => {
             runCustomJS();
+
+            // Intercept clicks on the preview and notify parent component
+            if ('${snippetId}') {
+              document.addEventListener('click', () => {
+                window.parent.postMessage({ type: 'IFRAME_CLICK', snippetId: '${snippetId}' }, '*');
+              });
+            }
 
             // Periodically refresh the component content to re-trigger mount transitions and loop scripts
             const container = document.querySelector('body > div');

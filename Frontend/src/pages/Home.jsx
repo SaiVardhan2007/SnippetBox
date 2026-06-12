@@ -44,6 +44,50 @@ export default function Home() {
     return () => window.removeEventListener('storage', handleStorage);
   }, []);
 
+  const getLanguageTabs = (snip) => {
+    if (!snip) return [];
+    const tabs = [];
+    if (snip.tailwindCode) tabs.push({ key: 'tailwind', label: 'Tailwind CSS' });
+    if (snip.htmlCode || snip.cssCode) tabs.push({ key: 'html', label: 'HTML & CSS' });
+    if (snip.reactCode) tabs.push({ key: 'react', label: 'React JSX' });
+    if (snip.jsCode) tabs.push({ key: 'js', label: 'JavaScript' });
+    return tabs;
+  };
+
+  const getCodeContent = (snip, activeTab) => {
+    if (!snip) return '';
+    if (activeTab === 'html') {
+      return snip.cssCode 
+        ? `${snip.htmlCode}\n\n/* Custom Styles */\n${snip.cssCode}`
+        : snip.htmlCode;
+    }
+    if (activeTab === 'tailwind') return snip.tailwindCode;
+    if (activeTab === 'react') return snip.reactCode;
+    if (activeTab === 'js') return snip.jsCode;
+    return '';
+  };
+
+  const openSnippetModal = (snip) => {
+    setSelectedSnippet(snip);
+    const tabs = getLanguageTabs(snip);
+    if (tabs.length > 0) {
+      setModalActiveTab(tabs[0].key);
+    }
+  };
+
+  useEffect(() => {
+    const handleMessage = (e) => {
+      if (e.data && e.data.type === 'IFRAME_CLICK') {
+        const found = snippets.find(s => s._id === e.data.snippetId);
+        if (found) {
+          openSnippetModal(found);
+        }
+      }
+    };
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [snippets]);
+
   const toggleBookmark = (snippetId) => {
     let nextBookmarks = [...bookmarks];
     if (nextBookmarks.includes(snippetId)) {
@@ -77,37 +121,6 @@ export default function Home() {
         setTimeout(() => setCopiedSnippetId(null), 2000);
       })
       .catch(err => console.error("Failed to copy:", err));
-  };
-
-  const getLanguageTabs = (snip) => {
-    if (!snip) return [];
-    const tabs = [];
-    if (snip.tailwindCode) tabs.push({ key: 'tailwind', label: 'Tailwind CSS' });
-    if (snip.htmlCode || snip.cssCode) tabs.push({ key: 'html', label: 'HTML & CSS' });
-    if (snip.reactCode) tabs.push({ key: 'react', label: 'React JSX' });
-    if (snip.jsCode) tabs.push({ key: 'js', label: 'JavaScript' });
-    return tabs;
-  };
-
-  const getCodeContent = (snip, activeTab) => {
-    if (!snip) return '';
-    if (activeTab === 'html') {
-      return snip.cssCode 
-        ? `${snip.htmlCode}\n\n/* Custom Styles */\n${snip.cssCode}`
-        : snip.htmlCode;
-    }
-    if (activeTab === 'tailwind') return snip.tailwindCode;
-    if (activeTab === 'react') return snip.reactCode;
-    if (activeTab === 'js') return snip.jsCode;
-    return '';
-  };
-
-  const openSnippetModal = (snip) => {
-    setSelectedSnippet(snip);
-    const tabs = getLanguageTabs(snip);
-    if (tabs.length > 0) {
-      setModalActiveTab(tabs[0].key);
-    }
   };
 
   // Filter categories or search snippets
@@ -261,7 +274,7 @@ export default function Home() {
 
                     <div>
                       <div className="flex items-center justify-between gap-2">
-                        <h3 className="font-bold text-xs sm:text-sm text-white group-hover:text-indigo-300 transition-colors truncate">{snip.title}</h3>
+                        <h3 className="font-bold text-xs sm:text-sm text-[var(--title-color)] group-hover:text-indigo-300 transition-colors truncate">{snip.title}</h3>
                         <div className="flex items-center gap-1.5 shrink-0">
                           <button
                             onClick={(e) => {
@@ -281,7 +294,7 @@ export default function Home() {
                       )}
                     </div>
 
-                    <div className="flex-1 flex items-center justify-center overflow-hidden pointer-events-none mt-2 select-none">
+                    <div className="flex-1 flex items-center justify-center overflow-hidden mt-2 select-none">
                       <div className="scale-90 origin-center transition-transform group-hover:scale-95 duration-300">
                         <IframePreview
                           htmlCode={snip.htmlCode}
@@ -289,6 +302,7 @@ export default function Home() {
                           jsCode={snip.jsCode}
                           tailwindCode={snip.tailwindCode}
                           height="90px"
+                          snippetId={snip._id}
                         />
                       </div>
                     </div>
@@ -380,7 +394,7 @@ export default function Home() {
 
                     <div>
                       <div className="flex items-center justify-between gap-2">
-                        <h3 className="font-bold text-xs sm:text-sm text-white group-hover:text-indigo-300 transition-colors truncate">{snip.title}</h3>
+                        <h3 className="font-bold text-xs sm:text-sm text-[var(--title-color)] group-hover:text-indigo-300 transition-colors truncate">{snip.title}</h3>
                         <div className="flex items-center gap-1.5 shrink-0">
                           <button
                             onClick={(e) => {
@@ -404,7 +418,7 @@ export default function Home() {
                       )}
                     </div>
 
-                    <div className="flex-1 flex items-center justify-center overflow-hidden pointer-events-none mt-2 select-none">
+                    <div className="flex-1 flex items-center justify-center overflow-hidden mt-2 select-none">
                       <div className="scale-90 origin-center transition-transform group-hover:scale-95 duration-300">
                         <IframePreview
                           htmlCode={snip.htmlCode}
@@ -412,6 +426,7 @@ export default function Home() {
                           jsCode={snip.jsCode}
                           tailwindCode={snip.tailwindCode}
                           height="90px"
+                          snippetId={snip._id}
                         />
                       </div>
                     </div>
@@ -490,7 +505,7 @@ export default function Home() {
               
               {/* Header Details */}
               <div className="p-6 border-b border-white/5 shrink-0">
-                <h2 className="text-base sm:text-lg font-black text-white">{selectedSnippet.title}</h2>
+                <h2 className="text-base sm:text-lg font-black text-[var(--title-color)]">{selectedSnippet.title}</h2>
                 {selectedSnippet.description && (
                   <p className="text-[11px] text-gray-400 mt-1 leading-relaxed">{selectedSnippet.description}</p>
                 )}
