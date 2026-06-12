@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default function IframePreview({ htmlCode = '', cssCode = '', jsCode = '', tailwindCode = '', height = '120px' }) {
+export default function IframePreview({ htmlCode = '', cssCode = '', jsCode = '', tailwindCode = '', height = '120px', theme = 'dark' }) {
   const doc = `
     <!DOCTYPE html>
     <html class="h-full">
@@ -18,7 +18,7 @@ export default function IframePreview({ htmlCode = '', cssCode = '', jsCode = ''
             align-items: center;
             min-height: 100vh;
             background-color: transparent;
-            color: #f3f4f6;
+            color: ${theme === 'light' ? '#0f172a' : '#f3f4f6'};
             font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
             box-sizing: border-box;
             overflow: hidden; /* Prevent scrolls inside standard UI components */
@@ -62,8 +62,21 @@ export default function IframePreview({ htmlCode = '', cssCode = '', jsCode = ''
     </html>
   `;
 
+  let bgClass = 'bg-[#08080f] border-white/5';
+  let inlineStyles = {};
+
+  if (theme === 'light') {
+    bgClass = 'bg-white border-black/10';
+  } else if (theme === 'grid') {
+    bgClass = 'bg-[#06060a] border-white/5';
+    inlineStyles = {
+      backgroundImage: 'linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px)',
+      backgroundSize: '16px 16px'
+    };
+  }
+
   return (
-    <div style={{ height }} className="w-full relative border border-white/5 bg-[#08080f] rounded-xl overflow-hidden shadow-inner">
+    <div style={{ height, ...inlineStyles }} className={`w-full relative border rounded-xl overflow-hidden shadow-inner ${bgClass}`}>
       <iframe
         title="Code Snippet Preview"
         style={{ height }}

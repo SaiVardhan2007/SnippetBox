@@ -20,12 +20,39 @@ export default function CategoryDetail() {
   // Selected snippet for the Google Images style detail popup
   const [selectedSnippet, setSelectedSnippet] = useState(null);
   const [modalActiveTab, setModalActiveTab] = useState(''); // Active tab in the modal: 'tailwind', 'html', etc.
+  const [modalBgTheme, setModalBgTheme] = useState('dark'); // 'dark' | 'light' | 'grid'
+  const [bookmarks, setBookmarks] = useState(() => JSON.parse(localStorage.getItem('snippetbox_bookmarks') || '[]'));
   
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
+  const [prevId, setPrevId] = useState(id);
+  if (id !== prevId) {
+    setPrevId(id);
     setIsLoading(true);
+  }
+
+  useEffect(() => {
+    const handleStorage = () => {
+      setBookmarks(JSON.parse(localStorage.getItem('snippetbox_bookmarks') || '[]'));
+    };
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, []);
+
+  const toggleBookmark = (snippetId) => {
+    let nextBookmarks = [...bookmarks];
+    if (nextBookmarks.includes(snippetId)) {
+      nextBookmarks = nextBookmarks.filter(id => id !== snippetId);
+    } else {
+      nextBookmarks.push(snippetId);
+    }
+    setBookmarks(nextBookmarks);
+    localStorage.setItem('snippetbox_bookmarks', JSON.stringify(nextBookmarks));
+    window.dispatchEvent(new Event('storage'));
+  };
+
+  useEffect(() => {
     // Fetch current category
     fetch(`${API_URL}/categories/${id}`)
       .then(res => res.json())
@@ -189,9 +216,25 @@ export default function CategoryDetail() {
               <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-indigo-500/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
 
               <div>
-                <div className="flex items-center justify-between">
-                  <h3 className="font-bold text-xs sm:text-sm text-white group-hover:text-indigo-300 transition-colors">{snip.title}</h3>
-                  <Eye size={12} className="text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="flex items-center justify-between gap-2">
+                  <h3 className="font-bold text-xs sm:text-sm text-white group-hover:text-indigo-300 transition-colors truncate">{snip.title}</h3>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleBookmark(snip._id);
+                      }}
+                      className={`p-1 rounded-lg border transition-all cursor-pointer hover:bg-white/5 ${
+                        bookmarks.includes(snip._id)
+                          ? 'text-pink-500 border-pink-500/20 bg-pink-500/10'
+                          : 'text-gray-500 border-transparent hover:text-gray-300'
+                      }`}
+                      title={bookmarks.includes(snip._id) ? "Remove Bookmark" : "Bookmark Snippet"}
+                    >
+                      <Icons.Heart size={12} fill={bookmarks.includes(snip._id) ? "currentColor" : "none"} />
+                    </button>
+                    <Eye size={12} className="text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </div>
                 </div>
                 {snip.description && (
                   <p className="text-[10px] text-gray-400 mt-1 line-clamp-1 leading-relaxed">{snip.description}</p>
@@ -250,10 +293,29 @@ export default function CategoryDetail() {
                   jsCode={selectedSnippet.jsCode}
                   tailwindCode={selectedSnippet.tailwindCode}
                   height="220px"
+                  theme={modalBgTheme}
                 />
               </div>
+
+              {/* Background Theme Switcher */}
+              <div className="flex items-center gap-1 bg-[#050508] p-0.5 border border-white/5 rounded-lg mt-3 self-center shadow-inner select-none">
+                {['dark', 'light', 'grid'].map((t) => (
+                  <button
+                    key={t}
+                    type="button"
+                    onClick={() => setModalBgTheme(t)}
+                    className={`text-[9px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md transition-all cursor-pointer ${
+                      modalBgTheme === t
+                        ? 'bg-indigo-600 text-white shadow-sm'
+                        : 'text-gray-400 hover:text-gray-300 hover:bg-white/5'
+                    }`}
+                  >
+                    {t}
+                  </button>
+                ))}
+              </div>
               
-              <span className="text-[9px] text-gray-500 mt-2 text-center select-none">
+              <span className="text-[9px] text-gray-500 mt-2.5 text-center select-none">
                 Hover or click component to interact live. entry states repeat automatically.
               </span>
             </div>
@@ -300,26 +362,40 @@ export default function CategoryDetail() {
                         </div>
                       )}
 
-                      <button
-                        onClick={() => handleCopy(selectedSnippet, activeTab)}
-                        className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg border transition-all cursor-pointer ${
-                          copiedSnippetId === selectedSnippet._id
-                            ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
-                            : 'bg-white/5 border-white/5 hover:border-white/10 hover:bg-white/10 text-gray-300'
-                        }`}
-                      >
-                        {copiedSnippetId === selectedSnippet._id ? (
-                          <>
-                            <Check size={12} className="text-emerald-400 animate-scale-up" />
-                            Copied!
-                          </>
-                        ) : (
-                          <>
-                            <Copy size={12} />
-                            Copy Code
-                          </>
-                        )}
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => toggleBookmark(selectedSnippet._id)}
+                          className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg border transition-all cursor-pointer ${
+                            bookmarks.includes(selectedSnippet._id)
+                              ? 'bg-pink-500/10 border-pink-500/30 text-pink-400 hover:bg-pink-500/20'
+                              : 'bg-white/5 border-white/5 hover:border-white/10 hover:bg-white/10 text-gray-300'
+                          }`}
+                        >
+                          <Icons.Heart size={12} fill={bookmarks.includes(selectedSnippet._id) ? "currentColor" : "none"} />
+                          {bookmarks.includes(selectedSnippet._id) ? 'Bookmarked' : 'Bookmark'}
+                        </button>
+
+                        <button
+                          onClick={() => handleCopy(selectedSnippet, activeTab)}
+                          className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg border transition-all cursor-pointer ${
+                            copiedSnippetId === selectedSnippet._id
+                              ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
+                              : 'bg-white/5 border-white/5 hover:border-white/10 hover:bg-white/10 text-gray-300'
+                          }`}
+                        >
+                          {copiedSnippetId === selectedSnippet._id ? (
+                            <>
+                              <Check size={12} className="text-emerald-400 animate-scale-up" />
+                              Copied!
+                            </>
+                          ) : (
+                            <>
+                              <Copy size={12} />
+                              Copy Code
+                            </>
+                          )}
+                        </button>
+                      </div>
                     </div>
 
                     {/* Pre-formatted Code scroll container */}

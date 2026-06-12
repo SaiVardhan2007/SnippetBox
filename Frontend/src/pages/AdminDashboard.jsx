@@ -59,6 +59,7 @@ export default function AdminDashboard() {
       const snipData = await snipRes.json();
       if (Array.isArray(snipData)) setSnippets(snipData);
     } catch (err) {
+      console.error("Failed to load dashboard content:", err);
       showMsg('Failed to load database content.', 'error');
     }
   };
