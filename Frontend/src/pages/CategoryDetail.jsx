@@ -16,6 +16,7 @@ export default function CategoryDetail() {
   const [allCategories, setAllCategories] = useState([]);
   const [snippets, setSnippets] = useState([]);
   const [copiedSnippetId, setCopiedSnippetId] = useState(null);
+  const [cardThemes, setCardThemes] = useState({});
   
   // Selected snippet for the Google Images style detail popup
   const [selectedSnippet, setSelectedSnippet] = useState(null);
@@ -264,12 +265,37 @@ export default function CategoryDetail() {
                     tailwindCode={snip.tailwindCode}
                     height="90px"
                     snippetId={snip._id}
+                    theme={cardThemes[snip._id] || 'dark'}
                   />
                 </div>
               </div>
 
-              <div className="text-[9px] font-bold uppercase tracking-wider text-gray-500 text-right mt-2 group-hover:text-indigo-400 transition-colors">
-                View & Copy Code
+              <div className="flex items-center justify-between mt-2 select-none relative z-10">
+                {/* Background theme toggle for preview */}
+                <div className="flex items-center gap-1 bg-black/20 dark:bg-black/40 border border-white/5 rounded-lg p-0.5">
+                  {['dark', 'light', 'grid'].map((t) => (
+                    <button
+                      key={t}
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation(); // Avoid opening modal
+                        setCardThemes(prev => ({ ...prev, [snip._id]: t }));
+                      }}
+                      className={`text-[8px] font-extrabold uppercase px-1.5 py-0.5 rounded transition-all cursor-pointer ${
+                        (cardThemes[snip._id] || 'dark') === t
+                          ? 'bg-indigo-600 text-white shadow-sm'
+                          : 'text-gray-500 hover:text-gray-300'
+                      }`}
+                      title={`${t.charAt(0).toUpperCase() + t.slice(1)} Preview Theme`}
+                    >
+                      {t}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="text-[9px] font-bold uppercase tracking-wider text-gray-500 group-hover:text-indigo-400 transition-colors">
+                  View & Copy Code
+                </div>
               </div>
             </div>
           ))}
